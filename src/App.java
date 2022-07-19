@@ -1,4 +1,6 @@
+import java.io.InputStream;
 import java.net.URI;
+import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -6,6 +8,7 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
 import java.util.Map;
 
+import modules.StickersGenerator;
 import utils.JsonParser;
 
 public class App {
@@ -20,17 +23,25 @@ public class App {
         HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
         String body = response.body();
 
-        // System.out.println(body);
-
         var parser = new JsonParser();
         List<Map<String, String>> listaDeFilmes = parser.parse(body);
 
-        // exibir e manipular os dados
+        var generator = new StickersGenerator();
         for (Map<String, String> filme : listaDeFilmes) {
-            System.out.println("Titulo do filme: " + filme.get("title"));
-            System.out.println("Pôster do filme: " + filme.get("image"));
-            System.out.println("Rating do filme: " + filme.get("imDbRating"));
-            System.out.println();
+
+            String urlImagem = filme.get("image");
+
+            InputStream inputStream = new URL(urlImagem).openStream();
+            String nomeSticker = filme.get("title");
+
+            try {
+                generator.generate(inputStream, nomeSticker);
+            } catch (Exception e) {
+                System.out.println("Filme inválido: " + e);
+            }
+
+            System.out.println(nomeSticker);
+
         }
     }
 }
